@@ -10,10 +10,20 @@ const WeatherCore = {
       return {lat:y,lon:((x+180)%360+360)%360-180,west:x-dx/2,east:x+dx/2,south:y-dy/2,north:y+dy/2};
     });
   },
-  futureIndices(times, now=Date.now()/1000) {
+  futureIndices(times, now=Date.now()/1000, hours=6) {
+    if(![1,3,6,12,24,72,168].includes(hours)) throw new Error("Unsupported forecast range.");
     const first = times.findIndex(t=>t>=now);
-    if(first<0 || times.length-first<7) throw new Error('Forecast does not cover the next six hours. Please refresh.');
-    return Array.from({length:7},(_,i)=>first+i);
+    if(first<0 || times.length-first<hours+1) throw new Error(`Forecast does not cover the selected ${hours}-hour range. Please refresh.`);
+    return Array.from({length:hours+1},(_,i)=>first+i);
+  },
+  periods(times, hourly, indices, hours) {
+    const first=indices[0];
+    if(hours<=24) return indices.map((i,j)=>({time:times[i],temperature:hourly.temperature_2m[i],rain:hourly.precipitation[i],label:j===0?'Next hour':null,span:1}));
+    return Array.from({length:hours/24},(_,day)=>{
+      const start=first+day*24+1, end=start+24;
+      const temps=hourly.temperature_2m.slice(start,end), rain=hourly.precipitation.slice(start,end);
+      return {time:times[start-1],end:times[end-1],min:temps.every(Number.isFinite)?Math.min(...temps):null,max:temps.every(Number.isFinite)?Math.max(...temps):null,rain:rain.every(Number.isFinite)?rain.reduce((a,b)=>a+b,0):null,label:`Day ${day+1}`,span:24};
+    });
   },
   value(v, digits=0) { return Number.isFinite(v) ? v.toFixed(digits) : '—'; },
   color(v, mode) {

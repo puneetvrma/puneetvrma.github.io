@@ -32,15 +32,20 @@ struct ContentView: View {
                         Text(temperature).font(.system(size: 48, weight: .light, design: .rounded))
                     }
                     Picker("Weather layer", selection: $model.layer) { ForEach(WeatherLayer.allCases, id: \.self) { Text($0.rawValue).tag($0) } }.pickerStyle(.segmented)
+                    HStack {
+                        Picker("Range", selection: $model.range) { ForEach(ForecastRange.allCases) { Text($0.title).tag($0) } }
+                        Picker("Model", selection: $model.source) { ForEach(ForecastSource.allCases) { Text($0.title).tag($0) } }
+                    }.disabled(model.layer == .radar)
+                    Text(model.source.detail + " Displayed samples ~15 km apart.").font(.caption).foregroundStyle(.secondary)
                     WeatherMap(model: model).frame(height: 380).clipShape(RoundedRectangle(cornerRadius: 16))
                     HStack {
                         Button { playing.toggle() } label: { Image(systemName: playing ? "pause.fill" : "play.fill") }.accessibilityLabel(playing ? "Pause timeline" : "Play timeline")
-                        if let date = model.validDate { Text(date, style: .time).bold() } else { Text("No data") }
+                        if let date = model.validDate { Text(date.formatted(date: .abbreviated, time: .shortened)).font(.subheadline).bold() } else { Text("No data") }
                         Spacer()
                         Text(model.layer == .radar ? "OBSERVED" : "MODEL FORECAST").font(.caption2.bold()).foregroundStyle(.teal)
                     }
                     Slider(value: $model.step, in: 0...max(1,model.maxStep), step: 1).disabled(model.maxStep == 0)
-                    HStack { Text(model.layer == .radar ? "Earlier observations" : "Next hourly step"); Spacer(); Text(model.layer == .radar ? "Latest observation" : "+6 hours") }.font(.caption).foregroundStyle(.secondary)
+                    HStack { Text(model.layer == .radar ? "Earlier observations" : "Next hourly step"); Spacer(); Text(model.layer == .radar ? "Latest observation" : "+" + model.range.title) }.font(.caption).foregroundStyle(.secondary)
                     if model.layer == .temperature { Text("Temperature · °C · blue = cold, red = warm").font(.caption) }
                     else if model.layer == .rain { Text("Hourly rain · mm · mint < 0.5, teal < 2, blue < 5, purple ≥ 5").font(.caption) }
                     if model.loading { ProgressView("Loading forecast…") }
@@ -48,7 +53,21 @@ struct ContentView: View {
                     if model.layer == .radar {
                         Text(model.radarMessage.isEmpty ? radarStatus : model.radarMessage).font(.caption).foregroundStyle(.secondary)
                     }
-                    if let hourly = model.center {
+                    if model.range.rawValue > 24 && model.center != nil {
+                        ScrollView(.horizontal) {
+                            HStack(spacing: 10) {
+                                ForEach(model.dailySummaries) { day in
+                                    VStack(spacing: 8) {
+                                        Text("Day \(day.id+1)").font(.caption.bold())
+                                        Text(day.start, style: .date).font(.caption2)
+                                        Text(model.formatted(day.minimum)+"–"+model.formatted(day.maximum)+"°").font(.title3.bold())
+                                        Text(model.formatted(day.rain, digits: 1)+" mm / 24h").font(.caption).foregroundStyle(.teal)
+                                    }.padding(12).background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                                }
+                            }
+                        }
+                        Text("Cards summarize rolling 24-hour windows from the next hourly step. The map always shows the selected hour. Longer-lead hourly data may be interpolated.").font(.caption).foregroundStyle(.secondary)
+                    } else if let hourly = model.center {
                         ScrollView(.horizontal) {
                             HStack(spacing: 10) {
                                 ForEach(model.indices, id: \.self) { i in
@@ -70,6 +89,8 @@ struct ContentView: View {
             .toolbar { Button { Task { await model.load(); await model.loadRadar() } } label: { Image(systemName: "arrow.clockwise") }.accessibilityLabel("Refresh weather") }
             .task { async let radar: Void = model.loadRadar(); await model.load(); await radar }
             .onChange(of: model.layer) { _, newValue in playing = false; model.step = newValue == .radar ? model.maxStep : 0 }
+            .onChange(of: model.range) { _, _ in playing = false; model.changeRange() }
+            .onChange(of: model.source) { _, _ in playing = false; Task { await model.load() } }
             .onReceive(timer) { _ in if playing { model.step = model.step >= model.maxStep ? 0 : model.step + 1 } }
         }.tint(.teal)
     }

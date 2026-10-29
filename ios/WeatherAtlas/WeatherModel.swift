@@ -9,6 +9,8 @@ enum WeatherLayer: String, CaseIterable { case rain = "Rain", temperature = "Tem
     @Published var query = ""
     @Published var results: [Place] = []
     @Published var layer = WeatherLayer.rain
+    @Published var range = ForecastRange.six
+    @Published var source = ForecastSource.automatic
     @Published var step = 0.0
     @Published var grid: [GridPoint] = []
     @Published var forecasts: [Forecast] = []
@@ -26,7 +28,7 @@ enum WeatherLayer: String, CaseIterable { case rain = "Rain", temperature = "Tem
 
     override init() { super.init(); locationManager.delegate = self }
     var center: Hourly? { forecasts.count == 49 ? forecasts[24].hourly : nil }
-    var maxStep: Double { layer == .radar ? Double(max(0, (radar?.radar.past.count ?? 1) - 1)) : 6 }
+    var maxStep: Double { layer == .radar ? Double(max(0, (radar?.radar.past.count ?? 1) - 1)) : Double(range.rawValue) }
     var hourlyIndex: Int? { indices.indices.contains(Int(step)) ? indices[Int(step)] : nil }
     var radarFrame: RadarFrame? {
         guard let frames = radar?.radar.past, frames.indices.contains(Int(step)) else { return nil }
@@ -51,23 +53,41 @@ enum WeatherLayer: String, CaseIterable { case rain = "Rain", temperature = "Tem
         if let newPlace { place = newPlace }
         loading = true; forecasts = []; indices = []; message = ""; loadedAt = nil; step = 0
         let points = WeatherService.grid(place)
-        let key = String(format: "%.3f,%.3f", place.latitude, place.longitude)
+        let selectedSource = source
+        let key = selectedSource.rawValue + String(format: "%.3f,%.3f", place.latitude, place.longitude)
         do {
             let data: [Forecast]
             let timestamp: Date
             if let cached = cache[key], Date().timeIntervalSince(cached.0) < 600 {
                 data = cached.1; timestamp = cached.0
             } else {
-                data = try await WeatherService.forecast(points); timestamp = Date()
+                data = try await WeatherService.forecast(points, source: selectedSource); timestamp = Date()
                 if cache.count > 15 { cache.removeAll() }
                 cache[key] = (timestamp, data)
             }
             guard generation == token else { return }
-            guard data.count == 49, let first = data[24].hourly.time.firstIndex(where: { $0 >= Date().timeIntervalSince1970 }), data[24].hourly.time.count > first + 6,
-                  data.allSatisfy({ $0.hourly.time == data[24].hourly.time && $0.hourly.temperature_2m.count > first + 6 && $0.hourly.precipitation.count > first + 6 && $0.hourly.wind_speed_10m.count > first + 6 }) else { throw WeatherError.incomplete }
-            grid = points; forecasts = data; indices = Array(first...first+6); loadedAt = timestamp
+            guard data.count == 49, let first = data[24].hourly.time.firstIndex(where: { $0 >= Date().timeIntervalSince1970 }), data[24].hourly.time.count > first + range.rawValue,
+                  data.allSatisfy({ $0.hourly.time == data[24].hourly.time && $0.hourly.temperature_2m.count > first + range.rawValue && $0.hourly.precipitation.count > first + range.rawValue && $0.hourly.wind_speed_10m.count > first + range.rawValue }) else { throw WeatherError.incomplete }
+            grid = points; forecasts = data; indices = Array(first...first+range.rawValue); loadedAt = timestamp
         } catch { if generation == token { message = error.localizedDescription } }
         if generation == token { loading = false }
+    }
+    func changeRange() {
+        step = 0
+        guard let h = center, let first = h.time.firstIndex(where: { $0 >= Date().timeIntervalSince1970 }), h.time.count > first + range.rawValue else {
+            if !loading { Task { await load() } }
+            return
+        }
+        indices = Array(first...first+range.rawValue)
+    }
+    var dailySummaries: [DailySummary] {
+        guard range.rawValue > 24, let h = center, let first = indices.first else { return [] }
+        return (0..<(range.rawValue/24)).map { day in
+            let start = first + day * 24 + 1, end = start + 24
+            let temps = h.temperature_2m[start..<end].compactMap { $0 }
+            let rain = h.precipitation[start..<end].compactMap { $0 }
+            return DailySummary(id: day, start: Date(timeIntervalSince1970: h.time[start-1]), end: Date(timeIntervalSince1970: h.time[end-1]), minimum: temps.count == 24 ? temps.min() : nil, maximum: temps.count == 24 ? temps.max() : nil, rain: rain.count == 24 ? rain.reduce(0,+) : nil)
+        }
     }
     func loadRadar() async {
         do { radar = try await WeatherService.radar(); radarMessage = ""; if layer == .radar { step = maxStep } }

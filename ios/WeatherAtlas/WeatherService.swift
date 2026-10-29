@@ -35,9 +35,30 @@ enum WeatherError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .response: return "Weather service unavailable. Please try again later."
-        case .incomplete: return "Forecast does not cover the next six hours. Please refresh."
+        case .incomplete: return "Forecast does not cover the selected range. Please refresh."
         }
     }
+}
+enum ForecastSource: String, CaseIterable, Identifiable {
+    case automatic = "best_match", ifs = "ecmwf_ifs"
+    var id: String { rawValue }
+    var title: String { self == .automatic ? "Auto · regional / global" : "ECMWF IFS · 9 km" }
+    var detail: String {
+        self == .automatic ? "Open-Meteo Best Match combines regional models where available (~1–3 km) with global models elsewhere (~9–25 km). Contributors vary with location, variable and lead time; exact contributors are not reported by this app." : "ECMWF IFS HRES · native grid ~9 km. Native output is hourly to 90 h, 3-hourly to 144 h, then 6-hourly. Open-Meteo interpolates hourly values."
+    }
+}
+enum ForecastRange: Int, CaseIterable, Identifiable {
+    case one = 1, three = 3, six = 6, twelve = 12, day = 24, threeDays = 72, week = 168
+    var id: Int { rawValue }
+    var title: String { rawValue >= 24 ? "\(rawValue/24) day\(rawValue == 24 ? "" : "s")" : "\(rawValue) hour\(rawValue == 1 ? "" : "s")" }
+}
+struct DailySummary: Identifiable {
+    let id: Int
+    let start: Date
+    let end: Date
+    let minimum: Double?
+    let maximum: Double?
+    let rain: Double?
 }
 enum WeatherService {
     static func grid(_ place: Place) -> [GridPoint] {
@@ -66,13 +87,14 @@ enum WeatherService {
         let response: Results = try await request(url.url!)
         return response.results ?? []
     }
-    static func forecast(_ grid: [GridPoint]) async throws -> [Forecast] {
+    static func forecast(_ grid: [GridPoint], source: ForecastSource) async throws -> [Forecast] {
         var url = URLComponents(string: "https://api.open-meteo.com/v1/forecast")!
         url.queryItems = [
             URLQueryItem(name: "latitude", value: grid.map { String(format: "%.4f", $0.latitude) }.joined(separator: ",")),
             URLQueryItem(name: "longitude", value: grid.map { String(format: "%.4f", $0.longitude) }.joined(separator: ",")),
             URLQueryItem(name: "hourly", value: "temperature_2m,precipitation,wind_speed_10m"),
-            URLQueryItem(name: "forecast_hours", value: "10"),
+            URLQueryItem(name: "forecast_hours", value: "170"),
+            URLQueryItem(name: "models", value: source.rawValue),
             URLQueryItem(name: "timeformat", value: "unixtime"),
             URLQueryItem(name: "cell_selection", value: "nearest")
         ]
