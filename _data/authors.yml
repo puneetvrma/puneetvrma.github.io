@@ -1,18 +1,5 @@
-# Authors
-
-Name Name:
-  name        : "Puneet Verma"
-  uri         : "http://name.com"
-  email       : "name@name.com"
-  bio         : "This is the first name."
-  avatar      : "bio-photo-2.jpg"
-  twitter     : "name"
-  google_plus : "Name"
-
-Name2 Name2:
-  name        : "Name2 Name2"
-  email       : "name2@name2.com"
-  bio         : "I ordered what?"
-  avatar      : "bio-photo.jpg"
-  twitter     : "name2"
-  google_plus : "Name"
+Puneet Verma:
+  name: "Dr. Puneet Verma"
+  email: "itspuneetv@gmail.com"
+  bio: "Adjunct Senior Lecturer, University of Western Australia"
+  avatar: "https://avatars.githubusercontent.com/u/50046053?v=4"
