@@ -1,0 +1,32 @@
+// !$*UTF8*$!
+{
+archiveVersion = 1;
+classes = {};
+objectVersion = 56;
+objects = {
+000000000000000000000010 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherAtlasApp.swift; sourceTree = "<group>"; };
+000000000000000000000014 = { isa = PBXBuildFile; fileRef = 000000000000000000000010; };
+000000000000000000000011 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherService.swift; sourceTree = "<group>"; };
+000000000000000000000015 = { isa = PBXBuildFile; fileRef = 000000000000000000000011; };
+000000000000000000000012 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherModel.swift; sourceTree = "<group>"; };
+000000000000000000000016 = { isa = PBXBuildFile; fileRef = 000000000000000000000012; };
+000000000000000000000013 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherMap.swift; sourceTree = "<group>"; };
+000000000000000000000017 = { isa = PBXBuildFile; fileRef = 000000000000000000000013; };
+000000000000000000000006 = { isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeatherAtlas.app; sourceTree = BUILT_PRODUCTS_DIR; };
+000000000000000000000002 = { isa = PBXGroup; children = (000000000000000000000003,000000000000000000000004,); sourceTree = "<group>"; };
+000000000000000000000003 = { isa = PBXGroup; children = (000000000000000000000010,000000000000000000000011,000000000000000000000012,000000000000000000000013,); path = WeatherAtlas; sourceTree = "<group>"; };
+000000000000000000000004 = { isa = PBXGroup; children = (000000000000000000000006,); name = Products; sourceTree = "<group>"; };
+000000000000000000000007 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (000000000000000000000014,000000000000000000000015,000000000000000000000016,000000000000000000000017,); runOnlyForDeploymentPostprocessing = 0; };
+000000000000000000000008 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+000000000000000000000009 = { isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+000000000000000000000005 = { isa = PBXNativeTarget; buildConfigurationList = 00000000000000000000000B; buildPhases = (000000000000000000000007,000000000000000000000008,000000000000000000000009,); buildRules = (); dependencies = (); name = WeatherAtlas; productName = WeatherAtlas; productReference = 000000000000000000000006; productType = "com.apple.product-type.application"; };
+000000000000000000000001 = { isa = PBXProject; attributes = { BuildIndependentTargetsInParallel = YES; LastSwiftUpdateCheck = 1600; LastUpgradeCheck = 1600; TargetAttributes = { 000000000000000000000005 = { CreatedOnToolsVersion = 16.0; }; }; }; buildConfigurationList = 00000000000000000000000A; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en,Base,); mainGroup = 000000000000000000000002; productRefGroup = 000000000000000000000004; projectDirPath = ""; projectRoot = ""; targets = (000000000000000000000005,); };
+00000000000000000000000C = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SWIFT_VERSION = 5.0; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; DEBUG_INFORMATION_FORMAT = dwarf; }; name = Debug; };
+00000000000000000000000D = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SWIFT_VERSION = 5.0; SWIFT_COMPILATION_MODE = wholemodule; SWIFT_OPTIMIZATION_LEVEL = "-O"; }; name = Release; };
+00000000000000000000000E = { isa = XCBuildConfiguration; buildSettings = { CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = "Weather Atlas"; INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Show rain and temperature forecasts near your current location."; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; PRODUCT_BUNDLE_IDENTIFIER = io.github.puneetvrma.WeatherAtlas; PRODUCT_NAME = "$(TARGET_NAME)"; TARGETED_DEVICE_FAMILY = "1,2"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_EMIT_LOC_STRINGS = YES; }; name = Debug; };
+00000000000000000000000F = { isa = XCBuildConfiguration; buildSettings = { CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_CFBundleDisplayName = "Weather Atlas"; INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Show rain and temperature forecasts near your current location."; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; PRODUCT_BUNDLE_IDENTIFIER = io.github.puneetvrma.WeatherAtlas; PRODUCT_NAME = "$(TARGET_NAME)"; TARGETED_DEVICE_FAMILY = "1,2"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_EMIT_LOC_STRINGS = YES; }; name = Release; };
+00000000000000000000000A = { isa = XCConfigurationList; buildConfigurations = (00000000000000000000000C,00000000000000000000000D,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+00000000000000000000000B = { isa = XCConfigurationList; buildConfigurations = (00000000000000000000000E,00000000000000000000000F,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+};
+rootObject = 000000000000000000000001;
+}

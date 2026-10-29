@@ -1,0 +1,17 @@
+name: Weather Atlas iOS build
+on:
+  push:
+    paths: ['ios/**', '.github/workflows/weather-ios.yml']
+  pull_request:
+    paths: ['ios/**', '.github/workflows/weather-ios.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  simulator:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build native iOS app without signing
+        run: xcodebuild -project ios/WeatherAtlas.xcodeproj -scheme WeatherAtlas -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
